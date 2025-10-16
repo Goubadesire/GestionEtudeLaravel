@@ -7,143 +7,180 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
-    <!-- DaisyUI + Tailwind -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <!-- Styles de base pour debug -->
+    <style>
+        .sidebar-desktop {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #1f2937;
+            color: white;
+            padding: 20px;
+            z-index: 30;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            background: #f9fafb;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar-desktop {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        .sidebar-mobile {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #1f2937;
+            color: white;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 50;
+        }
+        
+        .sidebar-mobile.open {
+            transform: translateX(0);
+        }
+        
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 40;
+        }
+    </style>
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="font-sans antialiased bg-gray-50 text-gray-800">
-    <div x-data="{ sidebarOpen: false }" class="flex h-screen overflow-hidden">
+<body>
+    <!-- Sidebar Desktop -->
+    <aside class="sidebar-desktop" style="display: block !important;">
+        <h2 class="text-2xl font-semibold mb-6">Menu</h2>
+        <nav>
+            <ul class="space-y-2">
+                <li><a href="{{ route('dashboard.index') }}" class="block py-2 px-3 rounded hover:bg-gray-700">Tableau de bord</a></li>
+                <li><a href="{{ route('matieres.index') }}" class="block py-2 px-3 rounded hover:bg-gray-700">Matières</a></li>
+                <li><a href="{{ route('notes.index') }}" class="block py-2 px-3 rounded hover:bg-gray-700">Notes</a></li>
+                <li><a href="{{ route('planning.index') }}" class="block py-2 px-3 rounded hover:bg-gray-700">Emploi du temps</a></li>
+                <li><a href="{{ route('semestres.index') }}" class="block py-2 px-3 rounded hover:bg-gray-700">Semestre</a></li>
+            </ul>
+        </nav>
+    </aside>
 
-        <!-- Sidebar DaisyUI -->
-        <aside x-cloak :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-       class="fixed inset-y-0 left-0 z-30 w-64 bg-gray-900 text-gray-100 shadow-lg transform md:translate-x-0 transition-transform duration-300 ease-in-out">
-    <div class="flex items-center justify-between p-5 md:block">
-        <h2 class="text-2xl font-semibold tracking-wide mb-4">Menu</h2>
-        <button @click.stop="sidebarOpen = false"
-                class="md:hidden text-gray-100 text-2xl p-2 rounded hover:bg-gray-800 transition">×</button>
+    <!-- Contenu Principal -->
+    <div class="main-content">
+        <header style="background: white; padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+            <div style="display: flex; justify-content: space-between;  align-items: center;">
+                <h1 style="font-size: 1.25rem; font-weight: 600; color: #374151;">
+                    @isset($header) {{ $header }} @else Tableau de bord @endisset
+                </h1>
+                
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span style="color: #6b7280;">{{ Auth::user()->name }}</span>
+                    <!-- Menu utilisateur -->
+                </div>
+            </div>
+        </header>
+
+        <main style="padding: 1.5rem;">
+            {{ $slot }}
+        </main>
     </div>
 
-    <ul class="space-y-3 px-3">
-        <li><a href="{{ route('dashboard.index') }}" class="block py-2 px-3 rounded-lg hover:bg-gray-800 transition">Tableau de bord</a></li>
-        <li><a href="{{ route('matieres.index') }}" class="block py-2 px-3 rounded-lg hover:bg-gray-800 transition">Matières</a></li>
-        <li><a href="{{ route('notes.index') }}" class="block py-2 px-3 rounded-lg hover:bg-gray-800 transition">Notes</a></li>
-        <li><a href="{{ route('planning.index') }}" class="block py-2 px-3 rounded-lg hover:bg-gray-800 transition">Emploi du temps</a></li>
-        <li><a href="{{ route('semestres.index') }}" class="block py-2 px-3 rounded-lg hover:bg-gray-800 transition">Semestre</a></li>
-    </ul>
-</aside>
-
-        <!-- Overlay -->
-        <div x-show="sidebarOpen" x-cloak @click.stop="sidebarOpen = false"
-     class="fixed inset-0 bg-black bg-opacity-30 z-20 md:hidden"></div>
-
-        <!-- Main content -->
-        <div class="flex-1 flex flex-col md:pl-64">
-
-            <!-- Breeze Navigation -->
-            <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex justify-between h-16">
-                        <div class="flex">
-                            <!-- You can put logo or other items here -->
-                        </div>
-
-                        <!-- Settings Dropdown -->
-                        <div class="hidden sm:flex sm:items-center sm:ms-6">
-                            <x-dropdown align="right" width="48">
-                                <x-slot name="trigger">
-                                    <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                                        <div>{{ Auth::user()->name }}</div>
-                                        <div class="ms-1">
-                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                            </svg>
-                                        </div>
-                                    </button>
-                                </x-slot>
-
-                                <x-slot name="content">
-                                    <x-dropdown-link :href="route('profile.edit')">
-                                        {{ __('Profile') }}
-                                    </x-dropdown-link>
-
-                                    <!-- Authentication -->
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <x-dropdown-link :href="route('logout')"
-                                                onclick="event.preventDefault(); this.closest('form').submit();">
-                                            {{ __('Log Out') }}
-                                        </x-dropdown-link>
-                                    </form>
-                                </x-slot>
-                            </x-dropdown>
-                        </div>
-
-                        <!-- Hamburger for Breeze -->
-                        <div class="-me-2 flex items-center sm:hidden">
-                            <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                    <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                                    <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+    <!-- Script simple pour la sidebar mobile -->
+    <script>
+        let sidebarOpen = false;
+        
+        function toggleSidebar() {
+            sidebarOpen = !sidebarOpen;
+            const sidebar = document.getElementById('sidebarMobile');
+            const overlay = document.getElementById('overlay');
+            
+            if (sidebarOpen) {
+                sidebar.classList.add('open');
+                overlay.style.display = 'block';
+            } else {
+                sidebar.classList.remove('open');
+                overlay.style.display = 'none';
+            }
+        }
+        
+        // Créer la sidebar mobile dynamiquement
+        document.addEventListener('DOMContentLoaded', function() {
+            // Créer l'overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'overlay';
+            overlay.className = 'overlay';
+            overlay.style.display = 'none';
+            overlay.onclick = toggleSidebar;
+            document.body.appendChild(overlay);
+            
+            // Créer la sidebar mobile
+            const sidebarMobile = document.createElement('aside');
+            sidebarMobile.id = 'sidebarMobile';
+            sidebarMobile.className = 'sidebar-mobile';
+            sidebarMobile.innerHTML = `
+                <div style="padding: 1.25rem; border-bottom: 1px solid #374151; display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="font-size: 1.5rem; font-weight: 600;">Menu</h2>
+                    <button onclick="toggleSidebar()" style="font-size: 1.5rem; padding: 0.5rem; border-radius: 0.25rem; background: transparent; color: white; border: none; cursor: pointer;">×</button>
                 </div>
-
-                <!-- Responsive Breeze menu -->
-                <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-                    <div class="pt-4 pb-1 border-t border-gray-200">
-                        <div class="px-4">
-                            <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                            <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-                        </div>
-
-                        <div class="mt-3 space-y-1">
-                            <x-responsive-nav-link :href="route('profile.edit')">
-                                {{ __('Profile') }}
-                            </x-responsive-nav-link>
-
-                            <!-- Authentication -->
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <x-responsive-nav-link :href="route('logout')"
-                                        onclick="event.preventDefault(); this.closest('form').submit();">
-                                    {{ __('Log Out') }}
-                                </x-responsive-nav-link>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Header -->
-            @isset($header)
-                <header class="bg-white border-b border-gray-200 shadow-sm">
-                    <div class="max-w-7xl mx-auto py-6 px-6 lg:px-8 text-gray-700">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
-
-            <!-- Main Content -->
-            <main class="flex-1 p-6 bg-gray-50 overflow-auto">
-                {{ $slot }}
-            </main>
-        </div>
-
-        <!-- Hamburger Sidebar DaisyUI -->
-        <button @click="sidebarOpen = true"
-                class="fixed bottom-5 right-5 z-40 md:hidden bg-gray-900 text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition">
-            ☰
-        </button>
-    </div>
+                <nav style="padding: 1rem;">
+                    <ul style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <li><a href="{{ route('dashboard.index') }}" style="display: block; padding: 0.5rem 0.75rem; border-radius: 0.375rem; color: white; text-decoration: none; background: transparent;">Tableau de bord</a></li>
+                        <li><a href="{{ route('matieres.index') }}" style="display: block; padding: 0.5rem 0.75rem; border-radius: 0.375rem; color: white; text-decoration: none; background: transparent;">Matières</a></li>
+                        <li><a href="{{ route('notes.index') }}" style="display: block; padding: 0.5rem 0.75rem; border-radius: 0.375rem; color: white; text-decoration: none; background: transparent;">Notes</a></li>
+                        <li><a href="{{ route('planning.index') }}" style="display: block; padding: 0.5rem 0.75rem; border-radius: 0.375rem; color: white; text-decoration: none; background: transparent;">Emploi du temps</a></li>
+                        <li><a href="{{ route('semestres.index') }}" style="display: block; padding: 0.5rem 0.75rem; border-radius: 0.375rem; color: white; text-decoration: none; background: transparent;">Semestre</a></li>
+                    </ul>
+                </nav>
+            `;
+            document.body.appendChild(sidebarMobile);
+            
+            // Créer le bouton hamburger mobile
+            const header = document.querySelector('header');
+            const hamburger = document.createElement('button');
+            hamburger.innerHTML = '☰';
+            hamburger.onclick = toggleSidebar;
+            hamburger.style.cssText = `
+                display: none;
+                padding: 0.5rem;
+                border-radius: 0.375rem;
+                color: #6b7280;
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                font-size: 1.5rem;
+            `;
+            
+            // Afficher seulement sur mobile
+            function checkScreenSize() {
+                if (window.innerWidth < 768) {
+                    hamburger.style.display = 'block';
+                    document.querySelector('.sidebar-desktop').style.display = 'none';
+                    document.querySelector('.main-content').style.marginLeft = '0';
+                } else {
+                    hamburger.style.display = 'none';
+                    document.querySelector('.sidebar-desktop').style.display = 'block';
+                    document.querySelector('.main-content').style.marginLeft = '250px';
+                }
+            }
+            
+            header.querySelector('div').insertBefore(hamburger, header.querySelector('div').firstChild);
+            checkScreenSize();
+            window.addEventListener('resize', checkScreenSize);
+        });
+    </script>
 </body>
 </html>
